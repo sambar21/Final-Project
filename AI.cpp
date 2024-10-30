@@ -19,7 +19,7 @@
 string getAIMoveString(const BuildingState& buildingState) {
     return "";
 }
-
+int cpp;
 string getAIPickupList(const Move& move, const BuildingState& buildingState, 
                        const Floor& floorToPickup) {
     return "";
