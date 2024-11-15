@@ -19,20 +19,62 @@
 using namespace std;
 
 Move::Move(string commandString) : Move() {
-    //TODO: Implement non-default constructor
+    if (commandString == "S") {
+        isSave = true;
+    }
+    else if (commandString == "Q") {
+        isQuit = true;
+    }
+    else if (commandString[0] == 'e') {
+        elevatorId = commandString[1] - '0';
+        if (commandString[2] == 'f') {
+            targetFloor = commandString[3] - '0';
+        }
+        else if (commandString[2] == 'p') {
+            isPickup = true;
+        }
+    }
+    else if (commandString == "P") {
+        isPass = true;
+    }
 }
 
 bool Move::isValidMove(Elevator elevators[NUM_ELEVATORS]) const {
-    //TODO: Implement isValidMove
-    
-    //Returning false to prevent compilation error
-    return false;
+    if (isPass || isQuit || isSave) {
+        return true;
+    }
+    if (elevatorId < 0 || elevatorId >= NUM_ELEVATORS) {
+        return false;
+    }
+    const Elevator& elevator = elevators[elevatorId];
+    if (elevator.isServicing()) {
+        return false;
+    }
+    if (!isPickup) {
+        if (targetFloor < 0 || targetFloor >= NUM_FLOORS) {
+            return false;
+        }
+        if (targetFloor == elevator.getCurrentFloor()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void Move::setPeopleToPickup(const string& pickupList, const int currentFloor, const Floor& pickupFloor) {
-    //TODO: Implement setPeopleToPickup
+    numPeopleToPickup = 0;
+    totalSatisfaction = 0;
+    targetFloor = currentFloor;
+    for (char indexChar : pickupList) {
+        int index = indexChar - '0';
+        peopleToPickup[numPeopleToPickup++] = index;
+        totalSatisfaction += pickupFloor.getPersonByIndex(index).getAngerLevel();
+        int personTargetFloor = pickupFloor.getPersonByIndex(index).getTargetFloor();
+        if (abs(personTargetFloor - currentFloor) > abs(targetFloor - currentFloor)) {
+            targetFloor = personTargetFloor;
+        }
+    }
 }
-
 //////////////////////////////////////////////////////
 ////// DO NOT MODIFY ANY CODE BENEATH THIS LINE //////
 //////////////////////////////////////////////////////
@@ -42,7 +84,7 @@ Move::Move() {
     targetFloor = -1;
     numPeopleToPickup = 0;
     totalSatisfaction = 0;
-	isPass = false;
+isPass = false;
     isPickup = false;
     isSave = false;
     isQuit = false;
@@ -53,15 +95,15 @@ bool Move::isPickupMove() const {
 }
 
 bool Move::isPassMove() const {
-	return isPass;
+return isPass;
 }
 
 bool Move::isSaveMove() const {
-	return isSave;
+return isSave;
 }
 
 bool Move::isQuitMove() const {
-	return isQuit;
+return isQuit;
 }
 
 int Move::getElevatorId() const {

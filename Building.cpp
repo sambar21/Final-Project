@@ -4,7 +4,7 @@
  * Building.cpp
  * Project UID 848fee0125dbb5eb53ed294f20dbef81
  *
- * <#Names#>
+ * <#John Butler, Varun Sambatur, Daniel Joseph, Miguel Truschel>
  * <#Uniqnames#>
  *
  * Final Project - Elevators
@@ -14,20 +14,51 @@
 
 using namespace std;
 
-void Building::spawnPerson(Person newPerson){
-    //TODO: Implement spawnPerson
+void Building::spawnPerson(Person newPerson) {
+    int currentFloor = newPerson.getCurrentFloor();
+    int targetFloor = newPerson.getTargetFloor();
+    floors[currentFloor].addPerson(newPerson, targetFloor);
 }
 
-void Building::update(Move move){
-    //TODO: Implement update
+void Building::update(Move move) {
+    if (move.isPassMove()) {
+        return;  
+    }
+    
+    int elevatorId = move.getElevatorId();
+    int targetFloor = move.getTargetFloor();
+    
+    if (move.isPickupMove()) {
+        int peopleToPickup[MAX_PEOPLE_PER_FLOOR]; 
+        int numPeopleToPickup = move.getNumPeopleToPickup();
+        
+        move.copyListOfPeopleToPickup(peopleToPickup);
+
+        floors[elevators[elevatorId].getCurrentFloor()].removePeople(peopleToPickup, numPeopleToPickup);
+    }
+    
+    elevators[elevatorId].serviceRequest(targetFloor);
 }
 
-int Building::tick(Move move){
-    //TODO: Implement tick
 
-    //returning 0 to prevent compilation error
-    return 0;
+
+int Building::tick(Move move) {
+    time += 1;  
+    
+    update(move);
+
+    for (int i = 0; i < NUM_ELEVATORS; ++i) {
+        elevators[i].tick(time);
+    }
+
+    int explodedPeopleCount = 0;
+    for (int i = 0; i < NUM_FLOORS; ++i) {
+        explodedPeopleCount += floors[i].tick(time);
+    }
+    
+    return explodedPeopleCount;
 }
+
 
 //////////////////////////////////////////////////////
 ////// DO NOT MODIFY ANY CODE BENEATH THIS LINE //////

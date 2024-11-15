@@ -23,7 +23,10 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
     std::mt19937 gen(1);
     std::uniform_int_distribution<> floorDist(0, 9);
     std::uniform_int_distribution<> angerDist(0, 3);
-
+    if (!gameFile.is_open()) {
+        std::cerr << "Error: Game file could not be opened." << std::endl;
+        exit(1);
+    }
     isAIMode = isAIModeIn;
     printGameStartPrompt();
     initGame(gameFile);
@@ -43,13 +46,21 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
         checkForGameEnd();
 
         Move nextMove = getMove();
-        update(nextMove);
+        if (performMove(nextMove)) {
+            update(nextMove);
+        }
     }
 }
 
 // Stub for isValidPickupList for Core
 // You *must* revise this function according to the RME and spec
 bool Game::isValidPickupList(const string& pickupList, const int pickupFloorNum) const {
+    for (int i = 0; i < pickupList.length(); i++) {
+        int personIndex = pickupList[i] - '0';
+        if (!isdigit(pickupList[i]) || personIndex >= building.getFloorByFloorNum(pickupFloorNum).getNumPeople()) {
+            return false;
+        }
+    }
     return true;
 }
 
