@@ -44,17 +44,23 @@ void Floor::addPerson(Person newPerson, int request) {
 }
 
 void Floor::removePeople(const int indicesToRemove[MAX_PEOPLE_PER_FLOOR], int numPeopleToRemove) {
-    for (int i = 0; i < numPeopleToRemove; ++i) {
-        int index = indicesToRemove[i];
-        if (index >= 0 && index < numPeople) {
-            for (int j = index; j < numPeople - 1; ++j) {
-                people[j] = people[j + 1];
-            }
-            --numPeople;
-        }
-    }
-    resetRequests();
+   int sortedIndices[MAX_PEOPLE_PER_FLOOR];
+   for (int i = 0; i < numPeopleToRemove; ++i) {
+       sortedIndices[i] = indicesToRemove[i];
+   }
+   std::sort(sortedIndices, sortedIndices + numPeopleToRemove, std::greater<int>());
+   for (int i = 0; i < numPeopleToRemove; ++i) {
+       int index = sortedIndices[i];
+       if (index >= 0 && index < numPeople) {
+           for (int j = index; j < numPeople - 1; ++j) {
+               people[j] = people[j + 1];
+           }
+           --numPeople;
+       }
+   }
+   resetRequests();
 }
+
 
 void Floor::resetRequests() {
     hasUpRequest = false;
