@@ -37,7 +37,10 @@ Move::Move(string commandString) : Move() {
     else if (commandString == "P") {
         isPass = true;
     }
+
+    
 }
+
 
 bool Move::isValidMove(Elevator elevators[NUM_ELEVATORS]) const {
     if (isPass || isQuit || isSave) {
@@ -62,20 +65,30 @@ bool Move::isValidMove(Elevator elevators[NUM_ELEVATORS]) const {
 }
 
 void Move::setPeopleToPickup(const string& pickupList, const int currentFloor, const Floor& pickupFloor) {
-   numPeopleToPickup = 0;
-   totalSatisfaction = 0;
-   targetFloor = currentFloor;
-   for (char indexChar : pickupList) {
-       int index = indexChar - '0';
-       peopleToPickup[numPeopleToPickup++] = index;
-       int angerLevel = pickupFloor.getPersonByIndex(index).getAngerLevel();
-       totalSatisfaction += angerLevel;
-       int personTargetFloor = pickupFloor.getPersonByIndex(index).getTargetFloor();
-       if (abs(personTargetFloor - currentFloor) > abs(targetFloor - currentFloor)) {
-           targetFloor = personTargetFloor;
-       }
-   }
+    numPeopleToPickup = 0;
+    totalSatisfaction = 0;
+    targetFloor = currentFloor;
+
+    for (char indexChar : pickupList) {
+        int index = indexChar - '0';
+
+        if (index < 0 || index >= MAX_PEOPLE_PER_FLOOR) {
+            cout << "Invalid index: " << index << endl; 
+            continue;  
+        }
+
+        peopleToPickup[numPeopleToPickup++] = index;
+        const Person& person = pickupFloor.getPersonByIndex(index);
+        int angerLevel = person.getAngerLevel();
+        int personTargetFloor = person.getTargetFloor();
+        totalSatisfaction += (MAX_ANGER - angerLevel);
+
+        if (abs(personTargetFloor - currentFloor) > abs(targetFloor - currentFloor)) {
+            targetFloor = personTargetFloor;
+        }
+    }
 }
+
 //////////////////////////////////////////////////////
 ////// DO NOT MODIFY ANY CODE BENEATH THIS LINE //////
 //////////////////////////////////////////////////////

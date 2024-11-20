@@ -16,32 +16,36 @@ using namespace std;
 
 int Floor::tick(int currentTime) {
     int explodedCount = 0;
-    for (int i = 0; i < numPeople;) {
-        if (people[i].tick(currentTime)) {
-            for (int j = i; j < numPeople - 1; ++j) {
-                people[j] = people[j + 1];
-            }
-            --numPeople;
-            ++explodedCount;
+   for (int i = 0; i < numPeople;) {
+    if (people[i].tick(currentTime)) {
+        for (int j = i; j < numPeople - 1; ++j) {
+            people[j] = people[j + 1];
         }
-        else {
-            ++i;
-        }
+        --numPeople;
+        ++explodedCount;
+        // Do not increment i so that we check the person who is now at index i
     }
+    else {
+        ++i;
+    }
+}
+    resetRequests();
     return explodedCount;
 }
 
 void Floor::addPerson(Person newPerson, int request) {
     if (numPeople < MAX_PEOPLE_PER_FLOOR) {
         people[numPeople++] = newPerson;
-        if (request > 0) {
+        if(request>0){
             hasUpRequest = true;
-        }
-        else if (request < 0) {
+        }if (request<0){
             hasDownRequest = true;
+
+
         }
     }
 }
+
 
 void Floor::removePeople(const int indicesToRemove[MAX_PEOPLE_PER_FLOOR], int numPeopleToRemove) {
    int sortedIndices[MAX_PEOPLE_PER_FLOOR];
@@ -62,10 +66,11 @@ void Floor::removePeople(const int indicesToRemove[MAX_PEOPLE_PER_FLOOR], int nu
 }
 
 
+
 void Floor::resetRequests() {
     hasUpRequest = false;
     hasDownRequest = false;
-    
+
     for (int i = 0; i < numPeople; ++i) {
         int targetFloor = people[i].getTargetFloor();
         if (targetFloor > people[i].getCurrentFloor()) {
@@ -93,10 +98,14 @@ Floor::Floor() {
 void Floor::prettyPrintFloorLine1(ostream& outs) const {
     string up = "U";
     outs << (hasUpRequest ? up : " ") << " ";
-    for (int i = 0; i < numPeople; ++i){
-        outs << people[i].getAngerLevel();
-        outs << ((people[i].getAngerLevel() < MAX_ANGER) ? " " : " ");
+    
+    for (int i = 0; i < numPeople; ++i) {
+        if (people[i].getAngerLevel() >= 0 && people[i].getAngerLevel() < MAX_ANGER) {
+            outs << people[i].getAngerLevel();
+            outs << " ";
+        }
     }
+    
     outs << endl;
 }
 
