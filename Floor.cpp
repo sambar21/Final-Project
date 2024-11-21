@@ -72,13 +72,16 @@ void Floor::resetRequests() {
     hasDownRequest = false;
 
     for (int i = 0; i < numPeople; ++i) {
+        int currentFloor = people[i].getCurrentFloor();
         int targetFloor = people[i].getTargetFloor();
-        if (targetFloor > people[i].getCurrentFloor()) {
+        
+        if (targetFloor > currentFloor) {
             hasUpRequest = true;
         }
-        if (targetFloor < people[i].getCurrentFloor()) {
+        if (targetFloor < currentFloor) {
             hasDownRequest = true;
         }
+        
         if (hasUpRequest && hasDownRequest) {
             break;
         }
@@ -98,14 +101,10 @@ Floor::Floor() {
 void Floor::prettyPrintFloorLine1(ostream& outs) const {
     string up = "U";
     outs << (hasUpRequest ? up : " ") << " ";
-    
-    for (int i = 0; i < numPeople; ++i) {
-        if (people[i].getAngerLevel() >= 0 && people[i].getAngerLevel() < MAX_ANGER) {
-            outs << people[i].getAngerLevel();
-            outs << " ";
-        }
+    for (int i = 0; i < numPeople; ++i){
+        outs << people[i].getAngerLevel();
+        outs << ((people[i].getAngerLevel() < MAX_ANGER) ? " " : " ");
     }
-    
     outs << endl;
 }
 
@@ -117,6 +116,7 @@ void Floor::prettyPrintFloorLine2(ostream& outs) const {
     }
     outs << endl;
 }
+
 
 void Floor::printFloorPickupMenu(ostream& outs) const {
     cout << endl;
