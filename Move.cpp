@@ -22,6 +22,9 @@ Move::Move(string commandString) : Move() {
     if (commandString == "S") {
         isSave = true;
     }
+    else if(commandString == ""){
+        isPass = true;
+    }
     else if (commandString == "Q") {
         isQuit = true;
     }

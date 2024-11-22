@@ -34,47 +34,81 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
     initGame(gameFile);
 
     while (true) {
-        int src = floorDist(gen);
-        int dst = floorDist(gen);
-        
-        // Ensure destination is different from source
-        if (src != dst) {
-            std::stringstream ss;
-            // Ensure correct request type by checking relative floor positions
-            if (dst > src) {
-                // Up request
-                ss << "0f" << src << "t" << dst << "a" << angerDist(gen);
-            } else {
-                // Down request
-                ss << "0f" << src << "t" << dst << "a" << angerDist(gen);
+        // Process events from the game file corresponding to the current turn
+        string eventLine;
+        bool eventProcessed = false;
+
+        if (std::getline(gameFile, eventLine)) {
+            stringstream eventStream(eventLine);
+            int eventTurn;
+            eventStream >> eventTurn;
+
+            if (eventTurn == building.getTime()) {
+                // Handle the event
+                string eventDetails;
+                eventStream >> eventDetails;
+
+                // Assuming the event format specifies person creation as a string
+                Person eventPerson(eventDetails);
+                building.spawnPerson(eventPerson);
+                eventProcessed = true;
             }
-            
-            Person p(ss.str());
-            building.spawnPerson(p);
+        }
+
+        // If no event was processed, generate a random person
+        if (!eventProcessed) {
+            int src = floorDist(gen);
+            int dst = floorDist(gen);
+
+            if (src != dst) {
+                std::stringstream ss;
+                if (dst > src) {
+                    ss << "0f" << src << "t" << dst << "a" << angerDist(gen);
+                } else {
+                    ss << "0f" << src << "t" << dst << "a" << angerDist(gen);
+                }
+
+                Person randomPerson(ss.str());
+                building.spawnPerson(randomPerson);
+            }
         }
 
         building.prettyPrintBuilding(cout);
         satisfactionIndex.printSatisfaction(cout, false);
 
-        checkForGameEnd();
-
         Move nextMove = getMove();
+
         if (performMove(nextMove)) {
             update(nextMove);
         }
+
+        checkForGameEnd();
     }
 }
+
 
 
 // Stub for isValidPickupList for Core
 // You *must* revise this function according to the RME and spec
 bool Game::isValidPickupList(const string& pickupList, const int pickupFloorNum) const {
+   
+    if (pickupFloorNum < 0 || pickupFloorNum >= NUM_FLOORS) {
+        return false;
+    }
+
+    const Floor& floor = building.getFloorByFloorNum(pickupFloorNum);
+    int numPeople = floor.getNumPeople();
+
     for (char c : pickupList) {
+        if (!isdigit(c)) {
+            return false; 
+        }
         int personIndex = c - '0';
-        if (!isdigit(c) || personIndex >= building.getFloorByFloorNum(pickupFloorNum).getNumPeople()) {
-            return false;
+        if (personIndex < 0 || personIndex >= numPeople) {
+            return false; 
         }
     }
+
     return true;
 }
 
