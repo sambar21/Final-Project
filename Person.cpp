@@ -5,10 +5,8 @@
 
 using namespace std;
 
-// Default constructor
 Person::Person() : turn(0), currentFloor(0), targetFloor(0), angerLevel(0) {}
 
-// Constructor that initializes a person based on a formatted string
 Person::Person(string inputString) {
     int tempTurn = 0, tempCurrentFloor = 0, tempTargetFloor = 0, tempAngerLevel = 0;
     int i = 0;
@@ -45,7 +43,7 @@ Person::Person(string inputString) {
     angerLevel = tempAngerLevel;
 }
 
-// Method to increase anger level based on the time
+// method to increase anger level based on the time
 bool Person::tick(int currentTime) {
     if (currentTime % TICKS_PER_ANGER_INCREASE == 0) {
         angerLevel++;
@@ -57,12 +55,10 @@ bool Person::tick(int currentTime) {
     return false;  
 }
 
-// Method to print the person's details
 void Person::print(ostream &outs) {    
     outs << "f" << currentFloor << "t" << targetFloor << "a" << angerLevel;
 }
 
-// Getter methods
 int Person::getTurn() const {
     return turn;
 }

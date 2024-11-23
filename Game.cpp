@@ -20,92 +20,70 @@ using namespace std;
 // Stub for playGame for Core, which plays random games
 // You *must* revise this function according to the RME and spec
 void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
-    std::mt19937 gen(1);
-    std::uniform_int_distribution<> floorDist(0, 9);
-    std::uniform_int_distribution<> angerDist(0, 3);
-
-    if (!gameFile.is_open()) {
-        std::cerr << "Error: Game file could not be opened." << endl;
-        exit(1);
+    if (!gameFile) { 
+        cerr << "Game file could not be opened. Exiting..." << endl;
+        exit(EXIT_FAILURE);
     }
 
     isAIMode = isAIModeIn;
     printGameStartPrompt();
     initGame(gameFile);
 
-    while (true) {
-        // Process events from the game file corresponding to the current turn
-        string eventLine;
-        bool eventProcessed = false;
-
-        if (std::getline(gameFile, eventLine)) {
-            stringstream eventStream(eventLine);
-            int eventTurn;
-            eventStream >> eventTurn;
-
-            if (eventTurn == building.getTime()) {
-                // Handle the event
-                string eventDetails;
-                eventStream >> eventDetails;
-
-                // Assuming the event format specifies person creation as a string
-                Person eventPerson(eventDetails);
-                building.spawnPerson(eventPerson);
-                eventProcessed = true;
-            }
+    string loading;
+    while (gameFile >> loading) {
+        Person newPerson(loading); 
+        while (building.getTime() < newPerson.getTurn()) {
+            building.prettyPrintBuilding(cout);
+            satisfactionIndex.printSatisfaction(cout,  false); 
+            checkForGameEnd();
+            Move moveToMake = getMove(); 
+            update(moveToMake);
         }
-
-        // If no event was processed, generate a random person
-        if (!eventProcessed) {
-            int src = floorDist(gen);
-            int dst = floorDist(gen);
-
-            if (src != dst) {
-                std::stringstream ss;
-                if (dst > src) {
-                    ss << "0f" << src << "t" << dst << "a" << angerDist(gen);
-                } else {
-                    ss << "0f" << src << "t" << dst << "a" << angerDist(gen);
-                }
-
-                Person randomPerson(ss.str());
-                building.spawnPerson(randomPerson);
-            }
-        }
-
-        building.prettyPrintBuilding(cout);
-        satisfactionIndex.printSatisfaction(cout, false);
-
-        Move nextMove = getMove();
-
-        if (performMove(nextMove)) {
-            update(nextMove);
-        }
-
-        checkForGameEnd();
+        building.spawnPerson(newPerson);
     }
+
+    while (true) {
+    building.prettyPrintBuilding(cout);
+    satisfactionIndex.printSatisfaction(cout, false);
+    checkForGameEnd();
+
+    Move chosenMove = getMove(); 
+    update(chosenMove); 
 }
-
-
-
-// Stub for isValidPickupList for Core
-// You *must* revise this function according to the RME and spec
+}
 bool Game::isValidPickupList(const string& pickupList, const int pickupFloorNum) const {
    
-    if (pickupFloorNum < 0 || pickupFloorNum >= NUM_FLOORS) {
+    if (pickupList.empty() || pickupList.length() > ELEVATOR_CAPACITY) {
         return false;
     }
 
-    const Floor& floor = building.getFloorByFloorNum(pickupFloorNum);
-    int numPeople = floor.getNumPeople();
+    bool foundUp = false, foundDown = false; 
 
-    for (char c : pickupList) {
-        if (!isdigit(c)) {
-            return false; 
+    for (size_t i = 0; i < pickupList.length(); ++i) {
+        int personIndex = pickupList[i] - '0';
+        const auto& currentFloor = building.getFloorByFloorNum(pickupFloorNum); 
+
+        if (personIndex < 0 || personIndex >= currentFloor.getNumPeople()) {
+            return false;
         }
-        int personIndex = c - '0';
-        if (personIndex < 0 || personIndex >= numPeople) {
-            return false; 
+
+    int targetFloor = currentFloor.getPersonByIndex(personIndex).getTargetFloor();
+    if (targetFloor > pickupFloorNum) {
+        foundUp = true;
+    }
+    if (targetFloor < pickupFloorNum) {
+        foundDown = true;
+    }
+
+
+        if (foundUp && foundDown) {
+            return false;
+        }
+
+        for (size_t j = i + 1; j < pickupList.length(); ++j) {
+            if (pickupList[i] == pickupList[j]) {
+                return false;
+            }
         }
     }
 

@@ -23,7 +23,6 @@ int Floor::tick(int currentTime) {
         }
         --numPeople;
         ++explodedCount;
-        // Do not increment i so that we check the person who is now at index i
     }
     else {
         ++i;
