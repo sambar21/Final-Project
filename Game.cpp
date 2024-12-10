@@ -15,12 +15,14 @@
 #include "Game.h"
 #include "AI.h"
 #include "Utility.h"
+#include <thread>
+#include <chrono>
 using namespace std;
 
 // Stub for playGame for Core, which plays random games
 // You *must* revise this function according to the RME and spec
 void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
-    if (!gameFile) { 
+    if (!gameFile) {
         cerr << "Game file could not be opened. Exiting..." << endl;
         exit(EXIT_FAILURE);
     }
@@ -31,25 +33,51 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
 
     string loading;
     while (gameFile >> loading) {
-        Person newPerson(loading); 
+        Person newPerson(loading);
         while (building.getTime() < newPerson.getTurn()) {
             building.prettyPrintBuilding(cout);
-            satisfactionIndex.printSatisfaction(cout,  false); 
+            satisfactionIndex.printSatisfaction(cout, false);
             checkForGameEnd();
-            Move moveToMake = getMove(); 
+
+            // Directly generate AI move when in AI mode
+            Move moveToMake;
+            if (isAIMode) {
+                string aiMoveString = getAIMoveString(building.getBuildingState());
+                moveToMake = Move(aiMoveString);
+                cout << "AI Move: " << aiMoveString << endl;
+                
+                // Add a much longer delay
+                this_thread::sleep_for(chrono::seconds(3));  // 3-second pause between moves
+            } else {
+                moveToMake = getMove();
+            }
+            
             update(moveToMake);
         }
         building.spawnPerson(newPerson);
     }
 
-    while (true) {
-    building.prettyPrintBuilding(cout);
-    satisfactionIndex.printSatisfaction(cout, false);
-    checkForGameEnd();
+    // Continue game with AI moves if in AI mode
+    while (building.getTime() < MAX_TURNS) {
+        building.prettyPrintBuilding(cout);
+        satisfactionIndex.printSatisfaction(cout, false);
+        checkForGameEnd();
 
-    Move chosenMove = getMove(); 
-    update(chosenMove); 
-}
+        // Directly generate AI move when in AI mode
+        Move chosenMove;
+        if (isAIMode) {
+            string aiMoveString = getAIMoveString(building.getBuildingState());
+            chosenMove = Move(aiMoveString);
+            cout << "AI Move: " << aiMoveString << endl;
+            
+            // Add a much longer delay
+            this_thread::sleep_for(chrono::seconds(3));  // 3-second pause between moves
+        } else {
+            chosenMove = getMove();
+        }
+        
+        update(chosenMove);
+    }
 }
 bool Game::isValidPickupList(const string& pickupList, const int pickupFloorNum) const {
    
